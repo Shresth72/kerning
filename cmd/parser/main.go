@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func parseFont(fontPath string) error {
+func ParseFont(fontPath string) error {
 	fr := &FontReader{}
 
 	err := fr.OpenFile(fontPath)
@@ -61,15 +61,19 @@ func parseFont(fontPath string) error {
 		}
 	}
 
-	// ReadGlyf()
-	fmt.Println("Tag to Offset Map:", tagOffsetMap)
+	glpyh0, err := ReadSimpleGlyph(fr)
+	if err != nil {
+		return err
+	}
+	glpyh0.Display()
+	glpyh0.DrawTest()
 
 	return nil
 }
 
 func main() {
-	fontPath := "/home/shrestha/.fonts/Inter-Bold.ttf"
-	err := parseFont(fontPath)
+	fontPath := "/home/shrestha/.fonts/Meditative.ttf"
+	err := ParseFont(fontPath)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

@@ -36,11 +36,20 @@ func (fr *FontReader) Goto(offset uint32) error {
 	return nil
 }
 
+func (fr *FontReader) ReadUint8() (uint8, error) {
+	var data uint8
+	err := binary.Read(fr.file, binary.BigEndian, &data)
+	if err != nil {
+		return 0, fmt.Errorf("error reading uint8 from file: %w", err)
+	}
+	return data, nil
+}
+
 func (fr *FontReader) ReadUint16() (uint16, error) {
 	var data uint16
 	err := binary.Read(fr.file, binary.BigEndian, &data)
 	if err != nil {
-		return 0, fmt.Errorf("error reading from file: %w", err)
+		return 0, fmt.Errorf("error reading uint16 from file: %w", err)
 	}
 	return data, nil
 }
@@ -49,7 +58,7 @@ func (fr *FontReader) ReadUint32() (uint32, error) {
 	var data uint32
 	err := binary.Read(fr.file, binary.BigEndian, &data)
 	if err != nil {
-		return 0, fmt.Errorf("error reading from file: %w", err)
+		return 0, fmt.Errorf("error reading uint32 from file: %w", err)
 	}
 	return data, nil
 }
