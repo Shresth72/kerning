@@ -30,13 +30,17 @@ func ParseFont(fontPath string) {
 		tableLocationLookup[tag] = offset
 	}
 
-	fontReader.GoTo(tableLocationLookup["glyf"])
-	glyph0 := ReadSimpleGlyph(fontReader)
-	fmt.Printf("Glyph 0:\n%s", glyph0)
+	allGlyphLocations := GetAllGlyphLocations(fontReader, tableLocationLookup)
 
-	if err := glyph0.PlotAndSave("glyph0.png"); err != nil {
-		log.Fatalf("Failed to save plot: %v", err)
-	} else {
-		fmt.Printf("Plot saved\n")
+	for i, glyphLocation := range allGlyphLocations {
+		fontReader.GoTo(glyphLocation)
+		glyphData := ReadSimpleGlyph(fontReader)
+		// fmt.Printf("Glyph %d:\n%s", i, glyphData)
+
+		if err := glyphData.PlotAndSave(fmt.Sprintf("glyphs/glyph%d.png", i)); err != nil {
+			log.Fatalf("Failed to save plot for glyph %d: %v", i, err)
+		} else {
+			fmt.Printf("Plot for glyph %d saved\n", i)
+		}
 	}
 }

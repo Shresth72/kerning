@@ -17,3 +17,10 @@ func min(a, b int) int {
 	}
 	return b
 }
+
+func ternary[T any](condition bool, trueVal, falseVal T) T {
+	if condition {
+		return trueVal
+	}
+	return falseVal
+}

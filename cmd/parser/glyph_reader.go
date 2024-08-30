@@ -37,6 +37,33 @@ func (g *GlyphData) String() string {
 	return sb.String()
 }
 
+func GetAllGlyphLocations(reader *FontReader, lookUp map[string]uint32) []uint32 {
+	reader.GoTo(lookUp["maxp"] + 4)
+	numGlyphs := reader.ReadUInt16()
+
+	reader.GoTo(lookUp["head"])
+	reader.SkipBytes(50) // Skip unused fields
+	isTwoByteEntry := reader.ReadUInt16() == 0
+
+	locationTableStart := lookUp["loca"]
+	glyphTableStart := lookUp["glyf"]
+	allGlyphLocations := make([]uint32, numGlyphs)
+
+	for glyphIndex := 0; glyphIndex < int(numGlyphs); glyphIndex++ {
+		var offset uint32
+		if isTwoByteEntry {
+			reader.GoTo(locationTableStart + uint32(glyphIndex)*2)
+			offset = uint32(reader.ReadUInt16()) * 2
+		} else {
+			reader.GoTo(locationTableStart + uint32(glyphIndex)*4)
+			offset = reader.ReadUInt32()
+		}
+		allGlyphLocations[glyphIndex] = glyphTableStart + offset
+	}
+
+	return allGlyphLocations
+}
+
 func ReadSimpleGlyph(reader *FontReader) *GlyphData {
 	contourEndIndices := make([]int, reader.ReadUInt16())
 	reader.SkipBytes(8)
