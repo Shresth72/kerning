@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	ParseFont("/home/shrestha/.fonts/Meditative.ttf")
+	ParseFont("../../assets/Meditative.ttf")
 }
 
 func ParseFont(fontPath string) {
