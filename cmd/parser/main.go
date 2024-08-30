@@ -2,81 +2,41 @@ package main
 
 import (
 	"fmt"
+	"log"
 )
 
-func ParseFont(fontPath string) error {
-	fr := &FontReader{}
-
-	err := fr.OpenFile(fontPath)
-	if err != nil {
-		return err
-	}
-	defer fr.CloseFile()
-
-	err = fr.SkipBytes(4)
-	if err != nil {
-		return err
-	}
-
-	numTables, err := fr.ReadUint16()
-	if err != nil {
-		return err
-	}
-
-	err = fr.SkipBytes(6)
-	if err != nil {
-		return err
-	}
-
-	tagOffsetMap := make(map[string]uint32)
-
-	for i := 0; i < int(numTables); i++ {
-		tag, err := fr.ReadTag()
-		if err != nil {
-			return err
-		}
-
-		_, err = fr.ReadUint32()
-		if err != nil {
-			return err
-		}
-
-		offset, err := fr.ReadUint32()
-		if err != nil {
-			return err
-		}
-
-		_, err = fr.ReadUint32()
-		if err != nil {
-			return err
-		}
-
-		tagOffsetMap[tag] = offset
-	}
-
-	if offset, ok := tagOffsetMap["glyf"]; ok {
-		err = fr.Goto(offset)
-		if err != nil {
-			return err
-		}
-	}
-
-	glpyh0, err := ReadSimpleGlyph(fr)
-	if err != nil {
-		return err
-	}
-	glpyh0.Display()
-	glpyh0.DrawTest()
-
-	return nil
+func main() {
+	ParseFont("/home/shrestha/.fonts/Meditative.ttf")
 }
 
-func main() {
-	fontPath := "/home/shrestha/.fonts/Meditative.ttf"
-	err := ParseFont(fontPath)
+func ParseFont(fontPath string) {
+	fontReader, err := NewFontReader(fontPath)
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
+		log.Fatalf("Failed to open font file: %v", err)
+	}
+	defer fontReader.Close()
+
+	fontReader.SkipBytes(4)
+	numTables := fontReader.ReadUInt16()
+	fontReader.SkipBytes(6)
+	fmt.Printf("NumTables: %d\n", numTables)
+
+	tableLocationLookup := make(map[string]uint32)
+	for i := 0; i < int(numTables); i++ {
+		tag := fontReader.ReadTag()
+		_ = fontReader.ReadUInt32() // checksum
+		offset := fontReader.ReadUInt32()
+		_ = fontReader.ReadUInt32() // length
+		tableLocationLookup[tag] = offset
 	}
 
+	fontReader.GoTo(tableLocationLookup["glyf"])
+	glyph0 := ReadSimpleGlyph(fontReader)
+	fmt.Printf("Glyph 0:\n%s", glyph0)
+
+	if err := glyph0.PlotAndSave("glyph0.png"); err != nil {
+		log.Fatalf("Failed to save plot: %v", err)
+	} else {
+		fmt.Printf("Plot saved\n")
+	}
 }

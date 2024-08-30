@@ -2,147 +2,137 @@ package main
 
 import (
 	"fmt"
+	"strings"
+
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/vg"
 )
 
-type Point struct {
-	X int
-	Y int
-}
-
 type GlyphData struct {
-	Points            []Point
+	XCoordinates      []int
+	YCoordinates      []int
 	ContourEndIndices []int
 }
 
-func (g *GlyphData) Display() {
-	for i, index := range g.ContourEndIndices {
-		fmt.Printf("Contour End Index %d: %d\n", i, index)
-	}
-
-	for i, point := range g.Points {
-		fmt.Printf("Point %d: (%d, %d)\n", i, point.X, point.Y)
+func NewGlyphData(xCoordinates, yCoordinates, contourEndIndices []int) *GlyphData {
+	return &GlyphData{
+		XCoordinates:      xCoordinates,
+		YCoordinates:      yCoordinates,
+		ContourEndIndices: contourEndIndices,
 	}
 }
 
-// Read
-func ReadSimpleGlyph(reader *FontReader) (GlyphData, error) {
-	// Read contour and indices
-	contourEndIndices := make([]int, 0)
-	numContours, err := reader.ReadUint16()
-	if err != nil {
-		return GlyphData{}, err
-	}
-	contourEndIndices = make([]int, numContours)
+func (g *GlyphData) String() string {
+	var sb strings.Builder
 
-	// Skip bounds size (8 bytes)
-	err = reader.SkipBytes(8)
-	if err != nil {
-		return GlyphData{}, err
+	for i, idx := range g.ContourEndIndices {
+		sb.WriteString(fmt.Sprintf("Contour End Index %d: %d\n", i, idx))
 	}
 
-	for i := 0; i < len(contourEndIndices); i++ {
-		index, err := reader.ReadUint16()
-		if err != nil {
-			return GlyphData{}, err
-		}
-		contourEndIndices[i] = int(index)
+	for i := 0; i < len(g.XCoordinates); i++ {
+		sb.WriteString(fmt.Sprintf("Point %d: (%d, %d)\n", i, g.XCoordinates[i], g.YCoordinates[i]))
+	}
+
+	return sb.String()
+}
+
+func ReadSimpleGlyph(reader *FontReader) *GlyphData {
+	contourEndIndices := make([]int, reader.ReadUInt16())
+	reader.SkipBytes(8)
+
+	for i := range contourEndIndices {
+		contourEndIndices[i] = int(reader.ReadUInt16())
 	}
 
 	numPoints := contourEndIndices[len(contourEndIndices)-1] + 1
 	allFlags := make([]byte, numPoints)
-
-	// Skip instructions
-	numFlags, err := reader.ReadUint16()
-	if err != nil {
-		return GlyphData{}, err
-	}
-	err = reader.SkipBytes(int64(numFlags))
-	if err != nil {
-		return GlyphData{}, err
-	}
+	reader.SkipBytes(int(reader.ReadUInt16()))
 
 	for i := 0; i < numPoints; i++ {
-		flag, err := reader.ReadUint8()
-		if err != nil {
-			return GlyphData{}, err
-		}
+		flag, _ := reader.ReadByte()
 		allFlags[i] = flag
 
 		if FlagBitIsSet(flag, 3) {
-			repeatCount, err := reader.ReadUint8()
-			if err != nil {
-				return GlyphData{}, err
-			}
-
+			repeatCount, _ := reader.ReadByte()
 			for r := 0; r < int(repeatCount); r++ {
-				if i+1 < len(allFlags) {
-					allFlags[i+1] = flag
-					i++
-				}
+				i++
+				allFlags[i] = flag
 			}
 		}
 	}
 
-	coordsX := ReadCoordinates(reader, allFlags, true)
-	coordsY := ReadCoordinates(reader, allFlags, false)
+	coordX := ReadCoordinates(reader, allFlags, true)
+	coordY := ReadCoordinates(reader, allFlags, false)
 
-	points := make([]Point, numPoints)
-	for i := 0; i < numPoints; i++ {
-		points[i] = Point{X: coordsX[i], Y: coordsY[i]}
-	}
-
-	return GlyphData{
-		Points:            points,
-		ContourEndIndices: contourEndIndices,
-	}, nil
-}
-
-func FlagBitIsSet(flag uint8, bitIndex int) bool {
-	return (flag >> uint8(bitIndex) & 1) == 1
+	return NewGlyphData(coordX, coordY, contourEndIndices)
 }
 
 func ReadCoordinates(reader *FontReader, allFlags []byte, readingX bool) []int {
-	var offsetSizeFlagBit, offsetSignOrSkipBit int
-
-	if readingX {
-		offsetSizeFlagBit = 1
-		offsetSignOrSkipBit = 4
-	} else {
+	offsetSizeFlagBit := 1
+	offsetSignOrSkipBit := 4
+	if !readingX {
 		offsetSizeFlagBit = 2
 		offsetSignOrSkipBit = 5
 	}
-
 	coordinates := make([]int, len(allFlags))
-	for i := 0; i < len(coordinates); i++ {
-		// Coordinate starts at previous value (0 if first coordinate)
-		if i > 0 {
-			coordinates[i] = coordinates[i-1]
-		}
-		flag := allFlags[i]
 
-		// onCurve (TODO)
-		_ = FlagBitIsSet(flag, 0)
+	for i := 0; i < len(coordinates); i++ {
+		coordinates[i] = coordinates[max(0, i-1)]
+		flag := allFlags[i]
+		// onCurve := FlagBitIsSet(flag, 0)
 
 		if FlagBitIsSet(flag, offsetSizeFlagBit) {
-			offset, err := reader.ReadUint8()
-			if err != nil {
-				return nil
+			offset, _ := reader.ReadByte()
+			sign := -1
+			if FlagBitIsSet(flag, offsetSignOrSkipBit) {
+				sign = 1
 			}
-
-			sign := 1
-			if !FlagBitIsSet(flag, offsetSignOrSkipBit) {
-				sign = -1
-			}
-
 			coordinates[i] += int(offset) * sign
 		} else if !FlagBitIsSet(flag, offsetSignOrSkipBit) {
-			offset, err := reader.ReadUint16()
-			if err != nil {
-				return nil
-			}
-			coordinates[i] += int(offset)
+			coordinates[i] += int(reader.ReadUInt16())
 		}
 	}
 
 	return coordinates
+}
+
+func (g *GlyphData) PlotAndSave(filename string) error {
+	p := plot.New()
+	p.Title.Text = "Glyph Plot"
+	p.X.Label.Text = "X"
+	p.Y.Label.Text = "Y"
+
+	// Draw Points
+	pts := make(plotter.XYs, len(g.XCoordinates))
+	for i := range pts {
+		pts[i].X = float64(g.XCoordinates[i])
+		pts[i].Y = float64(g.YCoordinates[i])
+	}
+
+	contourStartIndex := 0
+	for _, contourEndIndex := range g.ContourEndIndices {
+		numPointsInContour := contourEndIndex - contourStartIndex + 1
+		points := make(plotter.XYs, numPointsInContour+1) // +1 to close the contour
+
+		for i := 0; i < numPointsInContour; i++ {
+			points[i].X = float64(g.XCoordinates[contourStartIndex+i])
+			points[i].Y = float64(g.YCoordinates[contourStartIndex+i])
+		}
+		// Close the contour
+		points[numPointsInContour] = points[0]
+
+		line, err := plotter.NewLine(points)
+		if err != nil {
+			return err
+		}
+		p.Add(line)
+
+		contourStartIndex = contourEndIndex + 1
+	}
+	if err := p.Save(4*vg.Inch, 4*vg.Inch, filename); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/binary"
-	"fmt"
 	"io"
 	"os"
 )
@@ -11,69 +10,46 @@ type FontReader struct {
 	file *os.File
 }
 
-func (fr *FontReader) OpenFile(fontPath string) error {
-	var err error
-	fr.file, err = os.Open(fontPath)
+func NewFontReader(pathToFont string) (*FontReader, error) {
+	file, err := os.Open(pathToFont)
 	if err != nil {
-		return fmt.Errorf("error opening file: %w", err)
+		return nil, err
 	}
-	return nil
+	return &FontReader{file: file}, nil
 }
 
-func (fr *FontReader) SkipBytes(n int64) error {
-	_, err := fr.file.Seek(n, io.SeekCurrent)
-	if err != nil {
-		return fmt.Errorf("error seeking in file: %w", err)
-	}
-	return nil
+func (r *FontReader) ReadTag() string {
+	tag := make([]byte, 4)
+	r.file.Read(tag)
+	return string(tag)
 }
 
-func (fr *FontReader) Goto(offset uint32) error {
-	_, err := fr.file.Seek(int64(offset), io.SeekStart)
-	if err != nil {
-		return fmt.Errorf("error seeking to offset %d: %w", offset, err)
-	}
-	return nil
+func (r *FontReader) ReadByte() (byte, error) {
+	var b [1]byte
+	r.file.Read(b[:])
+	return b[0], nil
 }
 
-func (fr *FontReader) ReadUint8() (uint8, error) {
-	var data uint8
-	err := binary.Read(fr.file, binary.BigEndian, &data)
-	if err != nil {
-		return 0, fmt.Errorf("error reading uint8 from file: %w", err)
-	}
-	return data, nil
+func (r *FontReader) ReadUInt16() uint16 {
+	var value uint16
+	binary.Read(r.file, binary.BigEndian, &value)
+	return value
 }
 
-func (fr *FontReader) ReadUint16() (uint16, error) {
-	var data uint16
-	err := binary.Read(fr.file, binary.BigEndian, &data)
-	if err != nil {
-		return 0, fmt.Errorf("error reading uint16 from file: %w", err)
-	}
-	return data, nil
+func (r *FontReader) ReadUInt32() uint32 {
+	var value uint32
+	binary.Read(r.file, binary.BigEndian, &value)
+	return value
 }
 
-func (fr *FontReader) ReadUint32() (uint32, error) {
-	var data uint32
-	err := binary.Read(fr.file, binary.BigEndian, &data)
-	if err != nil {
-		return 0, fmt.Errorf("error reading uint32 from file: %w", err)
-	}
-	return data, nil
+func (r *FontReader) SkipBytes(num int) {
+	r.file.Seek(int64(num), io.SeekCurrent)
 }
 
-func (fr *FontReader) ReadTag() (string, error) {
-	tagBytes := make([]byte, 4)
-	_, err := fr.file.Read(tagBytes)
-	if err != nil {
-		return "", fmt.Errorf("error reading tag: %w", err)
-	}
-	return string(tagBytes), nil
+func (r *FontReader) GoTo(position uint32) {
+	r.file.Seek(int64(position), io.SeekStart)
 }
 
-func (fr *FontReader) CloseFile() {
-	if fr.file != nil {
-		fr.file.Close()
-	}
+func (r *FontReader) Close() {
+	r.file.Close()
 }
