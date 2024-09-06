@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"gonum.org/v1/plot"
-	"gonum.org/v1/plot/plotter"
 	"gonum.org/v1/plot/vg"
 )
 
@@ -103,9 +102,14 @@ func ReadCoordinates(reader *FontReader, allFlags []byte, readingX bool) []int {
 		offsetSignOrSkipBit = 5
 	}
 	coordinates := make([]int, len(allFlags))
+	if len(coordinates) > 0 {
+		coordinates[0] = 0
+	}
 
 	for i := 0; i < len(coordinates); i++ {
-		coordinates[i] = coordinates[max(0, i-1)]
+		if i > 0 {
+			coordinates[i] = coordinates[i-1]
+		}
 		flag := allFlags[i]
 		// onCurve := FlagBitIsSet(flag, 0)
 
@@ -119,6 +123,7 @@ func ReadCoordinates(reader *FontReader, allFlags []byte, readingX bool) []int {
 		} else if !FlagBitIsSet(flag, offsetSignOrSkipBit) {
 			coordinates[i] += int(reader.ReadUInt16())
 		}
+
 	}
 
 	return coordinates
@@ -126,37 +131,32 @@ func ReadCoordinates(reader *FontReader, allFlags []byte, readingX bool) []int {
 
 func (g *GlyphData) PlotAndSave(filename string) error {
 	p := plot.New()
-	p.Title.Text = "Glyph Plot"
+	p.Title.Text = fmt.Sprintf("Glyph Plot (%s)", filename)
 	p.X.Label.Text = "X"
 	p.Y.Label.Text = "Y"
-
-	// Draw Points
-	pts := make(plotter.XYs, len(g.XCoordinates))
-	for i := range pts {
-		pts[i].X = float64(g.XCoordinates[i])
-		pts[i].Y = float64(g.YCoordinates[i])
-	}
 
 	contourStartIndex := 0
 	for _, contourEndIndex := range g.ContourEndIndices {
 		numPointsInContour := contourEndIndex - contourStartIndex + 1
-		points := make(plotter.XYs, numPointsInContour+1) // +1 to close the contour
 
+		points := make([]Vector2, numPointsInContour)
 		for i := 0; i < numPointsInContour; i++ {
-			points[i].X = float64(g.XCoordinates[contourStartIndex+i])
-			points[i].Y = float64(g.YCoordinates[contourStartIndex+i])
+			points[i] = Vector2{
+				X: float64(g.XCoordinates[contourStartIndex+i]),
+				Y: float64(g.YCoordinates[contourStartIndex+i]),
+			}
 		}
-		// Close the contour
-		points[numPointsInContour] = points[0]
 
-		line, err := plotter.NewLine(points)
-		if err != nil {
-			return err
+		// Draw Bezier curves between points
+		for i := 0; i < numPointsInContour; i+=2 {
+			if err := DrawBezier(p, points[i], points[(i+1) % numPointsInContour], points[(i+2) % numPointsInContour], resolution); err != nil {
+				return err
+			}
 		}
-		p.Add(line)
 
 		contourStartIndex = contourEndIndex + 1
 	}
+
 	if err := p.Save(4*vg.Inch, 4*vg.Inch, filename); err != nil {
 		return err
 	}

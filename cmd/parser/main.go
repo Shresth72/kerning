@@ -5,6 +5,10 @@ import (
 	"log"
 )
 
+var (
+  resolution = 100
+)
+
 func main() {
 	ParseFont("../../assets/Meditative.ttf")
 }
@@ -33,6 +37,7 @@ func ParseFont(fontPath string) {
 	allGlyphLocations := GetAllGlyphLocations(fontReader, tableLocationLookup)
 
 	for i, glyphLocation := range allGlyphLocations {
+
 		fontReader.GoTo(glyphLocation)
 		glyphData := ReadSimpleGlyph(fontReader)
 		// fmt.Printf("Glyph %d:\n%s", i, glyphData)
