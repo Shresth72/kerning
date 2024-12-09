@@ -6,7 +6,7 @@ import (
 )
 
 var (
-  resolution = 100
+	resolution = 100
 )
 
 func main() {
