@@ -26,7 +26,7 @@ func ParseFont(fontPath string) {
 	fmt.Printf("NumTables: %d\n", numTables)
 
 	tableLocationLookup := make(map[string]uint32)
-	for i := 0; i < int(numTables); i++ {
+	for range make([]struct{}, numTables) {
 		tag := fontReader.ReadTag()
 		_ = fontReader.ReadUInt32() // checksum
 		offset := fontReader.ReadUInt32()
@@ -42,7 +42,7 @@ func ParseFont(fontPath string) {
 		glyphData := ReadSimpleGlyph(fontReader)
 		// fmt.Printf("Glyph %d:\n%s", i, glyphData)
 
-		if err := glyphData.PlotAndSave(fmt.Sprintf("glyphs/glyph%d.png", i)); err != nil {
+		if err := glyphData.PlotAndSave(fmt.Sprintf("glyphs/glyph-%d.png", i)); err != nil {
 			log.Fatalf("Failed to save plot for glyph %d: %v", i, err)
 		} else {
 			fmt.Printf("Plot for glyph %d saved\n", i)
