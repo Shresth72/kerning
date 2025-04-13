@@ -29,8 +29,9 @@ func (g *GlyphData) String() string {
 		sb.WriteString(fmt.Sprintf("Contour End Index %d: %d\n", i, idx))
 	}
 
-	for i := 0; i < len(g.XCoordinates); i++ {
-		sb.WriteString(fmt.Sprintf("Point %d: (%d, %d)\n", i, g.XCoordinates[i], g.YCoordinates[i]))
+	for i, x := range g.XCoordinates {
+		y := g.YCoordinates[i]
+		sb.WriteString(fmt.Sprintf("Point %d: (%d, %d)\n", i, x, y))
 	}
 
 	return sb.String()
@@ -140,7 +141,7 @@ func (g *GlyphData) PlotAndSave(filename string) error {
 		numPointsInContour := contourEndIndex - contourStartIndex + 1
 
 		points := make([]Vector2, numPointsInContour)
-		for i := 0; i < numPointsInContour; i++ {
+		for i := range points {
 			points[i] = Vector2{
 				X: float64(g.XCoordinates[contourStartIndex+i]),
 				Y: float64(g.YCoordinates[contourStartIndex+i]),
@@ -148,8 +149,8 @@ func (g *GlyphData) PlotAndSave(filename string) error {
 		}
 
 		// Draw Bezier curves between points
-		for i := 0; i < numPointsInContour; i+=2 {
-			if err := DrawBezier(p, points[i], points[(i+1) % numPointsInContour], points[(i+2) % numPointsInContour], resolution); err != nil {
+		for i := 0; i < numPointsInContour; i += 2 {
+			if err := DrawBezier(p, points[i], points[(i+1)%numPointsInContour], points[(i+2)%numPointsInContour], resolution); err != nil {
 				return err
 			}
 		}
