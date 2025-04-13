@@ -76,19 +76,20 @@ func ReadSimpleGlyph(reader *FontReader) *GlyphData {
 	allFlags := make([]byte, numPoints)
 	reader.SkipBytes(int(reader.ReadUInt16()))
 
-	for i := 0; i < numPoints; i++ {
+	i := 0
+	for i < numPoints {
 		flag, _ := reader.ReadByte()
 		allFlags[i] = flag
 
 		if FlagBitIsSet(flag, 3) {
 			repeatCount, _ := reader.ReadByte()
-			for r := 0; r < int(repeatCount); r++ {
-				i++
-				allFlags[i] = flag
+			for r := 1; r <= int(repeatCount) && i+r < numPoints; r++ {
+				allFlags[i+r] = flag
 			}
+			i += int(repeatCount)
 		}
+		i++
 	}
-
 	coordX := ReadCoordinates(reader, allFlags, true)
 	coordY := ReadCoordinates(reader, allFlags, false)
 
@@ -122,7 +123,7 @@ func ReadCoordinates(reader *FontReader, allFlags []byte, readingX bool) []int {
 			}
 			coordinates[i] += int(offset) * sign
 		} else if !FlagBitIsSet(flag, offsetSignOrSkipBit) {
-			coordinates[i] += int(reader.ReadUInt16())
+			coordinates[i] += int(reader.ReadInt16())
 		}
 
 	}

@@ -41,7 +41,7 @@ func ParseFont(fontPath string) {
 
 		fontReader.GoTo(glyphLocation)
 		glyphData := ReadSimpleGlyph(fontReader)
-		// fmt.Printf("Glyph %d:\n%s", i, glyphData)
+		fmt.Printf("Glyph %d:\n%s", i, glyphData)
 
 		if err := glyphData.PlotAndSave(fmt.Sprintf("glyphs/glyph-%d.png", i)); err != nil {
 			all = false

@@ -1,2 +1,4 @@
 glyph_plot.png
 glyph-*
+.venv
+__pycache__

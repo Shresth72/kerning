@@ -1,3 +1,3 @@
 # Text Kerning
 
-<img src="./assets/glyph53.png" />
+<img src="./cmd/parser/glyphs/glyphQ.png" />

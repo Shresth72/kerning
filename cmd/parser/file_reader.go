@@ -30,8 +30,20 @@ func (r *FontReader) ReadByte() (byte, error) {
 	return b[0], nil
 }
 
+func (r *FontReader) ReadInt16() int16 {
+	var value int16
+	binary.Read(r.file, binary.BigEndian, &value)
+	return value
+}
+
 func (r *FontReader) ReadUInt16() uint16 {
 	var value uint16
+	binary.Read(r.file, binary.BigEndian, &value)
+	return value
+}
+
+func (r *FontReader) ReadInt32() int32 {
+	var value int32
 	binary.Read(r.file, binary.BigEndian, &value)
 	return value
 }
