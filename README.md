@@ -1,3 +1,3 @@
 # Text Kerning
 
-<img src="./cmd/parser/glyphs/glyphQ.png" />
+<img src="./parser/glyfs/yo_man.png" />
