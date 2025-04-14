@@ -1,7 +1,8 @@
 class Point:
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int, on_curve: bool):
         self.x = x
         self.y = y
+        self.on_curve = on_curve
 
     def __repr__(self):
         return f"({self.x}, {self.y})"
@@ -19,6 +20,7 @@ def LinearInterpolation(start: Point, end: Point, time: float) -> Point:
     return Point(
         x=start.x + (end.x - start.x) * time,
         y=start.y + (end.y - start.y) * time,
+        on_curve=False,
     )
 
 
