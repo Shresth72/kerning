@@ -70,26 +70,14 @@ def GlyphDrawTest(glyph: GlyphData, filename="glyfs/glyph_output.png"):
     ax.set_title("Glyph Drawing")
 
     resolution = 100
-    contour_start_index = 0
-    for contour_end_index in glyph.contour_end_indices:
-        num_points_in_contour = contour_end_index - contour_start_index + 1
+    contours = CreateContoursWithImpliedPoints(glyph)
 
-        points = [
-            Point(
-                float(glyph.coordsX[contour_start_index + i]),
-                float(glyph.coordsY[contour_start_index + i]),
-                on_curve=glyph.points[contour_start_index + i].on_curve,
-            )
-            for i in range(num_points_in_contour)
-        ]
-
-        for i in range(0, len(points), 2):
-            p0 = points[i]
-            p1 = points[(i + 1) % len(points)]
-            p2 = points[(i + 2) % len(points)]
+    for contour in contours:
+        for i in range(0, len(contour), 2):
+            p0 = contour[i]
+            p1 = contour[(i + 1) % len(contour)]
+            p2 = contour[(i + 2) % len(contour)]
             DrawBezier(p0, p1, p2, resolution, ax)
-
-        contour_start_index = contour_end_index + 1
 
     # for point in glyph.points:
     #     DrawPoint(point, ax)
