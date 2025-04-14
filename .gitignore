@@ -1,5 +1,4 @@
 glyph_plot.png
 glyph-*
 .venv
-cmd/parser/parser
 __pycache__

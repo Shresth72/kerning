@@ -1,7 +1,5 @@
-from pathlib import Path
-
 from utils import goto, skip_bytes, read_uint16, read_uint32, read_tag
-from glyph import ReadSimpleGlyph, GlyphDrawTest, GetAllGlyphLocations
+from glyph import ReadSimpleGlyph
 
 
 def ParseFont(fontPath: str) -> None:
@@ -21,17 +19,13 @@ def ParseFont(fontPath: str) -> None:
 
             table_location_map[tag] = offset
 
-        all_glyph_locs = GetAllGlyphLocations(f, table_location_map)
+        if "glyf" in table_location_map:
+            glyf_offset = table_location_map["glyf"]
+            goto(f, glyf_offset)
 
-        Path("glyfs").mkdir(exist_ok=True)
-
-        for i, glyph_loc in enumerate(all_glyph_locs):
-            goto(f, glyph_loc)
-            glyph_data = ReadSimpleGlyph(f)
-            GlyphDrawTest(glyph_data, f"glyfs/glyph-{i}.png")
-
-        print("Saved all glyphs to glyfs")
+            glyf0 = ReadSimpleGlyph(f)
+            print(f"Glyf0: \n{glyf0}")
 
 
 if __name__ == "__main__":
-    ParseFont("../assets/Meditative.ttf")
+    ParseFont("../assets/JetBrainsMono-Bold.ttf")
