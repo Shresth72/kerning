@@ -11,15 +11,19 @@ def skip_bytes(file: BinaryIO, num: int) -> None:
 
 
 def read_uint8(file: BinaryIO) -> int:
-    return struct.unpack(">b", file.read(1))[0]
+    return struct.unpack(">B", file.read(1))[0]
 
 
-def read_uint16(file: BinaryIO) -> int:
+def read_int16(file: BinaryIO) -> int:
     return struct.unpack(">h", file.read(2))[0]
 
 
+def read_uint16(file: BinaryIO) -> int:
+    return struct.unpack(">H", file.read(2))[0]
+
+
 def read_uint32(file: BinaryIO) -> int:
-    return struct.unpack(">i", file.read(4))[0]
+    return struct.unpack(">I", file.read(4))[0]
 
 
 def read_tag(file: BinaryIO) -> str:
