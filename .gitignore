@@ -2,3 +2,6 @@ glyph-*
 .venv
 __pycache__
 text.png
+nob
+nob.old
+main

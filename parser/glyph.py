@@ -61,6 +61,7 @@ def DrawTextGlyphs(
 
     plt.savefig(filename)
     print(f"Saved rendered text to {filename}")
+    # plt.show()
     plt.close(fig)
 
 
