@@ -4,16 +4,16 @@
 #define NOB_STRIP_PREFIX
 #include "lib/nob.h"
 
-#define WINDOW_WIDTH 600
-#define WINDOW_HEIGHT 450
+#define WINDOW_WIDTH 1200
+#define WINDOW_HEIGHT 400
 #define MAX_TABLES 64
 
-void ParseFont(FILE *f, TableLoc *table_loc) {
+void ParseFont(FILE *f) {
   skip_bytes(f, 4);
   __uint16_t num_tables = read_uint16(f);
-  assert(num_tables < MAX_TABLES);
   skip_bytes(f, 6);
 
+  TableLoc table_loc[num_tables];
   for (int i = 0; i < num_tables; ++i) {
     char tag[5];
     read_tag(f, tag);
@@ -24,6 +24,8 @@ void ParseFont(FILE *f, TableLoc *table_loc) {
     strncpy(table_loc[i].tag, tag, 5);
     table_loc[i].offset = offset;
   }
+
+  GetAllGlyphLocations(f, table_loc, num_tables);
 }
 
 int main() {
@@ -39,14 +41,13 @@ int main() {
   }
 
   const char *fontPath = "../assets/JetBrainsMono-Bold.ttf";
-  TableLoc table_loc[MAX_TABLES];
 
   FILE *fontFile = fopen(fontPath, "rb");
   if (!fontFile) {
     perror("Failed to open font file");
   }
 
-  ParseFont(fontFile, table_loc);
+  ParseFont(fontFile);
   fclose(fontFile);
 
   // InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "RandomArt");

@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 
   builder_cc(&cmd);
   builder_output(&cmd, "main");
-  builder_inputs(&cmd, "main.c", "utils.c");
+  builder_inputs(&cmd, "main.c", "utils.c", "glyph.c");
   builder_libs(&cmd);
   builder_flags(&cmd);
   builder_raylib_include_path(&cmd);

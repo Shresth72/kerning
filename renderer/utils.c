@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <stdio.h>
 
 long get_loc(FILE *file) { return ftell(file); }
 
@@ -38,4 +39,15 @@ void read_tag(FILE *file, char *tag) {
 
 bool flag_bit_is_set(__uint32_t flag, int bit_index) {
   return ((flag >> bit_index) & 1) == 1;
+}
+
+__uint32_t get_table_offset(TableLoc *lookup, int count, const char *tag) {
+  for (int i = 0; i < count; ++i) {
+    if (strncmp(lookup[i].tag, tag, 4) == 0) {
+      return lookup[i].offset;
+    }
+  }
+
+  nob_log(NOB_ERROR, "Table tag '%s' not found", tag);
+  return 0;
 }
