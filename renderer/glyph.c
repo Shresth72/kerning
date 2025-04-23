@@ -48,7 +48,7 @@ GlyphUnicodeIndexMap *GetUnicodeGlyphIndexMap(FILE *f, TagOffsetMap *tag_map) {
   if (format == 12) {
     return parse_format_12_cmap(f);
   } else if (format == 4) {
-    return parse_format_12_cmap(f);
+    return parse_format_4_cmap(f);
   } else {
     NOB_TODO("Font cmap format not supported yet");
   }
@@ -88,29 +88,25 @@ GlyphUnicodeIndexMap *parse_format_12_cmap(FILE *f) {
   read_uint32(f);
   __uint32_t num_groups = read_uint32(f);
 
-  unicode_index_map->indices =
-      malloc(sizeof(GlyphUnicodeIndexEntry) * num_groups);
-  if (!unicode_index_map->indices) {
-    nob_log(NOB_ERROR, "malloc failed for 'unicode_index_map->indices'");
-    exit(1);
-  }
+  GlyphUnicodeIndexEntry *entries = NULL;
 
   for (__uint32_t i = 0; i < num_groups; ++i) {
     __uint32_t start_char_code = read_uint32(f);
     __uint32_t end_char_code = read_uint32(f);
     __uint32_t start_glyph_index = read_uint32(f);
 
-    __uint32_t num_chars = end_char_code - start_char_code + 1;
     for (__uint32_t char_code = start_char_code; char_code <= end_char_code;
          ++char_code) {
-      unicode_index_map->indices[i].unicode = char_code;
-      unicode_index_map->indices[i].index =
-          start_glyph_index + (char_code - start_char_code);
-      i++;
+      GlyphUnicodeIndexEntry entry = {.unicode = char_code,
+                                      .index = start_glyph_index +
+                                               (char_code - start_char_code)};
+      arrput(entries, entry);
     }
   }
 
-  unicode_index_map->count = num_groups;
+  unicode_index_map->indices = entries;
+  unicode_index_map->count = arrlen(entries);
+
   return unicode_index_map;
 }
 
@@ -121,6 +117,8 @@ GlyphUnicodeIndexMap *parse_format_4_cmap(FILE *f) {
     nob_log(NOB_ERROR, "malloc failed for 'unicode_index_map'");
     exit(1);
   }
+
+  GlyphUnicodeIndexEntry *entries = NULL;
 
   skip_bytes(f, 4);
   __uint16_t seg_count_2x = read_uint16(f);
@@ -142,5 +140,49 @@ GlyphUnicodeIndexMap *parse_format_4_cmap(FILE *f) {
   READ_INTO_ARRAY(id_range_offsets, f, IdRangeOffset, read_id_range_offset,
                   seg_count);
 
-  NOB_TODO("TODO parse_4_format");
+  for (__uint16_t i = 0; i < seg_count; ++i) {
+    __uint16_t start_code = start_codes[i];
+    __uint16_t curr_code = start_codes[i];
+    __uint16_t end_code = end_codes[i];
+    __uint16_t id_delta = id_deltas[i];
+    __uint16_t range_offset = id_range_offsets[i].offset;
+    long base_loc = id_range_offsets[i].read_loc;
+
+    // for (__uint16_t code = start_code; code <= end_code; ++code) {
+    while (curr_code <= end_code) {
+      __uint16_t glyph_index = 0;
+
+      if (range_offset == 0) {
+        glyph_index = (curr_code + id_delta) % 65536;
+      } else {
+        long offset = base_loc + range_offset + 2 * (curr_code - start_code);
+        long curr_loc = get_loc(f);
+
+        goto_loc(f, offset);
+        __uint16_t glyph_id = read_uint16(f);
+        goto_loc(f, curr_loc);
+
+        if (glyph_id == 0) {
+          continue; // glyph is not present
+        }
+        glyph_index = (glyph_id + id_delta) % 65536;
+      }
+
+      GlyphUnicodeIndexEntry entry = {.unicode = curr_code,
+                                      .index = glyph_index};
+      arrput(entries, entry);
+
+      curr_code++;
+    }
+  }
+
+  unicode_index_map->indices = entries;
+  unicode_index_map->count = arrlen(entries);
+
+  free(end_codes);
+  free(start_codes);
+  free(id_deltas);
+  free(id_range_offsets);
+
+  return unicode_index_map;
 }

@@ -33,6 +33,7 @@ void ParseFont(FILE *f) {
 
   GlyphUnicodeIndexMap *unicode_index_map =
       GetUnicodeGlyphIndexMap(f, &tag_offset_map);
+  printf("Length of unicode_index_map: %d", unicode_index_map->count);
 
   free(tables);
   free(all_glyph_locs);

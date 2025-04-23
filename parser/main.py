@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 
 from utils import goto, skip_bytes, read_uint16, read_uint32, read_tag
@@ -26,6 +27,7 @@ def RenderText(f, text, glyph_index_map, all_glyph_locs):
             glyph_data = ReadSimpleGlyph(f)
             glyphs_to_draw.append((glyph_data, False))
 
+    # TODO: Do this heavy lifting in another rust library
     DrawTextGlyphs(glyphs_to_draw)
 
 
@@ -39,7 +41,7 @@ def RenderAllGlyphs(f, all_glyph_locs):
     print("Saved all glyphs to glyfs")
 
 
-def ParseFont(fontPath: str) -> None:
+async def ParseFont(fontPath: str) -> None:
     Path("glyfs").mkdir(exist_ok=True)
 
     with open(fontPath, "rb") as f:
@@ -61,11 +63,11 @@ def ParseFont(fontPath: str) -> None:
         unicode_to_glyph_index_map = GetUnicodeToGlyphIndexMappings(
             f, table_location_map
         )
-        print("Length of unicode_to_glyph_index_map:", len(unicode_to_glyph_index_map))
-        #
-        # RenderText(f, "S", unicode_to_glyph_index_map, all_glyph_locs)
+
+        text = "Shrestha"
+        RenderText(f, text, unicode_to_glyph_index_map, all_glyph_locs)
         # RenderAllGlyphs(f, all_glyph_locs)
 
 
 if __name__ == "__main__":
-    ParseFont("../assets/Meditative.ttf")
+    asyncio.run(ParseFont("../assets/Meditative.ttf"))
