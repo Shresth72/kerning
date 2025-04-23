@@ -1,5 +1,4 @@
 #include "utils.h"
-#include <stdio.h>
 
 long get_loc(FILE *file) { return ftell(file); }
 
@@ -41,13 +40,12 @@ bool flag_bit_is_set(__uint32_t flag, int bit_index) {
   return ((flag >> bit_index) & 1) == 1;
 }
 
-__uint32_t get_table_offset(TableLoc *lookup, int count, const char *tag) {
-  for (int i = 0; i < count; ++i) {
-    if (strncmp(lookup[i].tag, tag, 4) == 0) {
-      return lookup[i].offset;
+__uint32_t get_table_offset(GlyphTableMap *glyph_map, const char *tag) {
+  for (int i = 0; i < glyph_map->count; ++i) {
+    if (strncmp(glyph_map->tables[i].tag, tag, 4) == 0) {
+      return glyph_map->tables[i].offset;
     }
   }
-
   nob_log(NOB_ERROR, "Table tag '%s' not found", tag);
   return 0;
 }

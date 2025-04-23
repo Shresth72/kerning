@@ -91,11 +91,13 @@ def GlyphDrawTest(glyph: GlyphData, filename="glyfs/glyph_output.png"):
 def GetAllGlyphLocations(f: BinaryIO, lookup: dict):
     goto(f, lookup["maxp"] + 4)
     num_glyphs = read_uint16(f)
+    print(num_glyphs)
 
     goto(f, lookup["head"])
     skip_bytes(f, 50)
 
     is_two_byte_entry = True if read_uint16(f) == 0 else False
+    print(is_two_byte_entry)
 
     location_table_start = lookup["loca"]
     glyph_table_start = lookup["glyf"]
