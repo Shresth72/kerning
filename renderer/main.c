@@ -16,7 +16,7 @@ void ParseFont(FILE *f) {
   __uint16_t num_tables = read_uint16(f);
   skip_bytes(f, 6);
 
-  GlyphTableEntry *tables = malloc(sizeof(GlyphTableEntry) * num_tables);
+  TagOffsetEntry *tables = malloc(sizeof(TagOffsetEntry) * num_tables);
   for (int i = 0; i < num_tables; ++i) {
     char tag[5];
     read_tag(f, tag);
@@ -28,8 +28,16 @@ void ParseFont(FILE *f) {
     tables[i].offset = offset;
   }
 
-  GlyphTableMap glyph_map = {.tables = tables, .count = num_tables};
-  GetAllGlyphLocations(f, &glyph_map);
+  TagOffsetMap tag_offset_map = {.tables = tables, .count = num_tables};
+  __uint32_t *all_glyph_locs = GetAllGlyphLocations(f, &tag_offset_map);
+
+  GlyphUnicodeIndexMap *unicode_index_map =
+      GetUnicodeGlyphIndexMap(f, &tag_offset_map);
+
+  free(tables);
+  free(all_glyph_locs);
+  free(unicode_index_map->indices);
+  free(unicode_index_map);
 }
 
 int main() {
@@ -44,7 +52,7 @@ int main() {
     printf("Directory created: %s\n", glyphs_dir);
   }
 
-  const char *fontPath = "../assets/JetBrainsMono-Bold.ttf";
+  const char *fontPath = "../assets/Meditative.ttf";
   FILE *fontFile = fopen(fontPath, "rb");
   if (!fontFile) {
     perror("Failed to open font file");

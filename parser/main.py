@@ -58,13 +58,14 @@ def ParseFont(fontPath: str) -> None:
             table_location_map[tag] = offset
         all_glyph_locs = GetAllGlyphLocations(f, table_location_map)
 
-        # unicode_to_glyph_index_map = GetUnicodeToGlyphIndexMappings(
-        #     f, table_location_map
-        # )
+        unicode_to_glyph_index_map = GetUnicodeToGlyphIndexMappings(
+            f, table_location_map
+        )
+        print("Length of unicode_to_glyph_index_map:", len(unicode_to_glyph_index_map))
         #
-        # RenderText(f, "ShR", unicode_to_glyph_index_map, all_glyph_locs)
+        # RenderText(f, "S", unicode_to_glyph_index_map, all_glyph_locs)
         # RenderAllGlyphs(f, all_glyph_locs)
 
 
 if __name__ == "__main__":
-    ParseFont("../assets/JetBrainsMono-Bold.ttf")
+    ParseFont("../assets/Meditative.ttf")

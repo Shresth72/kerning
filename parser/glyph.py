@@ -91,13 +91,11 @@ def GlyphDrawTest(glyph: GlyphData, filename="glyfs/glyph_output.png"):
 def GetAllGlyphLocations(f: BinaryIO, lookup: dict):
     goto(f, lookup["maxp"] + 4)
     num_glyphs = read_uint16(f)
-    print(num_glyphs)
 
     goto(f, lookup["head"])
     skip_bytes(f, 50)
 
     is_two_byte_entry = True if read_uint16(f) == 0 else False
-    print(is_two_byte_entry)
 
     location_table_start = lookup["loca"]
     glyph_table_start = lookup["glyf"]
@@ -270,6 +268,7 @@ def find_best_cmap_subtable(f: BinaryIO, num_subtables: int) -> int:
             # Unicode>=2.0 semantics (non-BMP chars allowed)
             if platform_specific_id == 4:
                 best_offset = offset
+                break
             # Unicode>=2.0 semantics (BMP only)
             if platform_specific_id == 3 and best_offset == MAX_UINT:
                 best_offset = offset
@@ -284,6 +283,7 @@ def parse_format_12_cmap(f: BinaryIO) -> dict:
     _ = read_uint32(f)  # length
     _ = read_uint32(f)  # language
     num_groups = read_uint32(f)
+    print("Length of num_groups:", num_groups)
 
     for i in range(num_groups):
         start_char_code = read_uint32(f)

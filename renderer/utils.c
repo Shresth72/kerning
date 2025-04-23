@@ -40,12 +40,19 @@ bool flag_bit_is_set(__uint32_t flag, int bit_index) {
   return ((flag >> bit_index) & 1) == 1;
 }
 
-__uint32_t get_table_offset(GlyphTableMap *glyph_map, const char *tag) {
-  for (int i = 0; i < glyph_map->count; ++i) {
-    if (strncmp(glyph_map->tables[i].tag, tag, 4) == 0) {
-      return glyph_map->tables[i].offset;
+__uint32_t get_tag_offset(TagOffsetMap *tag_offset_map, const char *tag) {
+  for (int i = 0; i < tag_offset_map->count; ++i) {
+    if (strncmp(tag_offset_map->tables[i].tag, tag, 4) == 0) {
+      return tag_offset_map->tables[i].offset;
     }
   }
   nob_log(NOB_ERROR, "Table tag '%s' not found", tag);
   return 0;
+}
+
+IdRangeOffset read_id_range_offset(FILE *f) {
+  IdRangeOffset val;
+  val.read_loc = get_loc(f);
+  val.offset = read_uint16(f);
+  return val;
 }
