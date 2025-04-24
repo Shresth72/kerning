@@ -2,7 +2,7 @@
 
 Rendering Text from glyphs
 
-# Build & Run (renderer lib not published yet, so build manually)
+## Build & Run (renderer lib not published yet, so build manually)
 
 Install requirements
 
@@ -26,7 +26,7 @@ cd parser
 python3 main.py
 ```
 
-# Examples
+## Examples
 
 <img src="./parser/glyfs/and.png" width="400" />
 
