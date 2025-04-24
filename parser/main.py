@@ -1,4 +1,3 @@
-import asyncio
 from pathlib import Path
 
 from utils import goto, skip_bytes, read_uint16, read_uint32, read_tag
@@ -41,7 +40,7 @@ def RenderAllGlyphs(f, all_glyph_locs):
     print("Saved all glyphs to glyfs")
 
 
-async def ParseFont(fontPath: str) -> None:
+def ParseFont(fontPath: str) -> None:
     Path("glyfs").mkdir(exist_ok=True)
 
     with open(fontPath, "rb") as f:
@@ -70,4 +69,4 @@ async def ParseFont(fontPath: str) -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(ParseFont("../assets/Meditative.ttf"))
+    ParseFont("../assets/Meditative.ttf")

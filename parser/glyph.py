@@ -13,6 +13,8 @@ from utils import (
     flag_bit_is_set,
 )
 
+from renderer import accept_countours
+
 MAX_UINT = 0xFFFFFFFF
 
 
@@ -29,6 +31,11 @@ class GlyphData:
             f"    points={self.points},\n"
             f"    contour_end_indices={self.contour_end_indices}\n)"
         )
+
+
+def PassContoursToDraw(contours):
+    tuple_contours = [[(p.x, p.y, p.on_curve) for p in contour] for contour in contours]
+    accept_countours(tuple_contours)
 
 
 def DrawTextGlyphs(
@@ -48,18 +55,20 @@ def DrawTextGlyphs(
         resolution = 100
         contours = CreateContoursWithImpliedPoints(glyph)
 
-        for contour in contours:
-            shifted_contour = [Point(p.x + x_cursor, p.y, p.on_curve) for p in contour]
+        PassContoursToDraw(contours)
 
-            for i in range(0, len(shifted_contour), 2):
-                p0 = shifted_contour[i]
-                p1 = shifted_contour[(i + 1) % len(shifted_contour)]
-                p2 = shifted_contour[(i + 2) % len(shifted_contour)]
-                DrawBezier(p0, p1, p2, resolution, ax)
-
-        x_cursor += spacing
-
-    plt.savefig(filename)
+    #     for contour in contours:
+    #         shifted_contour = [Point(p.x + x_cursor, p.y, p.on_curve) for p in contour]
+    #
+    #         for i in range(0, len(shifted_contour), 2):
+    #             p0 = shifted_contour[i]
+    #             p1 = shifted_contour[(i + 1) % len(shifted_contour)]
+    #             p2 = shifted_contour[(i + 2) % len(shifted_contour)]
+    #             DrawBezier(p0, p1, p2, resolution, ax)
+    #
+    #     x_cursor += spacing
+    #
+    # plt.savefig(filename)
     print(f"Saved rendered text to {filename}")
     # plt.show()
     plt.close(fig)
