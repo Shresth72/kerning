@@ -21,8 +21,11 @@ fn lerp(a: &Point, b: &Point, t: f64) -> Point {
     [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
 }
 
-fn draw_line(p1: &Point, p2: &Point) {
-    println!("line bw: {:?}, {:?}", p1, p2);
+pub fn draw_line(p1: &Point, p2: &Point) {
+    println!(
+        "Draw line: ({:.2}, {:.2}) -> ({:.2}, {:.2})",
+        p1[0], p1[1], p2[0], p2[1]
+    );
 }
 
 fn draw_point(p: &Point) {

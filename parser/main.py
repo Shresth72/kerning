@@ -6,6 +6,7 @@ from glyph import (
     GlyphDrawTest,
     GetAllGlyphLocations,
     DrawTextGlyphsRust,
+    DrawTextGlyphs,
     GetUnicodeToGlyphIndexMappings,
 )
 
@@ -63,7 +64,7 @@ def ParseFont(fontPath: str) -> None:
             f, table_location_map
         )
 
-        text = "I am"
+        text = "Shrestha Shashank"
         RenderText(f, text, unicode_to_glyph_index_map, all_glyph_locs)
         # RenderAllGlyphs(f, all_glyph_locs)
 
