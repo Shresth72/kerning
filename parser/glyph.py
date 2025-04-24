@@ -34,7 +34,7 @@ class GlyphData:
 
 
 def PassContoursToDraw(contours):
-    tuple_contours = [[(p.x, p.y, p.on_curve) for p in contour] for contour in contours]
+    tuple_contours = [[(p.x, p.y) for p in contour] for contour in contours]
     accept_countours(tuple_contours)
 
 

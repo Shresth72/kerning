@@ -4,17 +4,12 @@ mod bezier;
 use bezier::Point;
 
 #[pyfunction]
-fn accept_countours(contours: Vec<Vec<(f64, f64, bool)>>) -> PyResult<()> {
+fn accept_countours(contours: Vec<Vec<(f64, f64)>>) -> PyResult<()> {
     let parsed_contours: Vec<Vec<Point>> = contours
         .into_iter()
-        .map(|contour| {
-            contour
-                .into_iter()
-                .map(|(x, y, on_curve)| Point { x, y, on_curve })
-                .collect()
-        })
+        .map(|contour| contour.into_iter().map(|(x, y)| [x, y]).collect())
         .collect();
-    println!("Received contours: {:?}", parsed_contours);
+    println!("Received contours: Points {:?}", parsed_contours);
     Ok(())
 }
 
