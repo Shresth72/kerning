@@ -13,7 +13,7 @@ from utils import (
     flag_bit_is_set,
 )
 
-from renderer import accept_countours
+from renderer import accept_glyphs
 
 MAX_UINT = 0xFFFFFFFF
 
@@ -33,9 +33,20 @@ class GlyphData:
         )
 
 
-def PassContoursToDraw(contours):
-    tuple_contours = [[(p.x, p.y) for p in contour] for contour in contours]
-    accept_countours(tuple_contours)
+def PassContoursToDraw(all_glyphs_contours):
+    tuple_data = [
+        (is_space, [[(p.x, p.y) for p in contour] for contour in glyph])
+        for (is_space, glyph) in all_glyphs_contours
+    ]
+    accept_glyphs(tuple_data)
+
+
+def DrawTextGlyphsRust(glyphs: list, filename="glyfs/text.png"):
+    all_contours = [
+        (is_space, CreateContoursWithImpliedPoints(glyph) if not is_space else [])
+        for glyph, is_space in glyphs
+    ]
+    PassContoursToDraw(all_contours)
 
 
 def DrawTextGlyphs(
@@ -55,20 +66,18 @@ def DrawTextGlyphs(
         resolution = 100
         contours = CreateContoursWithImpliedPoints(glyph)
 
-        PassContoursToDraw(contours)
+        for contour in contours:
+            shifted_contour = [Point(p.x + x_cursor, p.y, p.on_curve) for p in contour]
 
-    #     for contour in contours:
-    #         shifted_contour = [Point(p.x + x_cursor, p.y, p.on_curve) for p in contour]
-    #
-    #         for i in range(0, len(shifted_contour), 2):
-    #             p0 = shifted_contour[i]
-    #             p1 = shifted_contour[(i + 1) % len(shifted_contour)]
-    #             p2 = shifted_contour[(i + 2) % len(shifted_contour)]
-    #             DrawBezier(p0, p1, p2, resolution, ax)
-    #
-    #     x_cursor += spacing
-    #
-    # plt.savefig(filename)
+            for i in range(0, len(shifted_contour), 2):
+                p0 = shifted_contour[i]
+                p1 = shifted_contour[(i + 1) % len(shifted_contour)]
+                p2 = shifted_contour[(i + 2) % len(shifted_contour)]
+                DrawBezier(p0, p1, p2, resolution, ax)
+
+        x_cursor += spacing
+
+    plt.savefig(filename)
     print(f"Saved rendered text to {filename}")
     # plt.show()
     plt.close(fig)

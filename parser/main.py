@@ -5,7 +5,7 @@ from glyph import (
     ReadSimpleGlyph,
     GlyphDrawTest,
     GetAllGlyphLocations,
-    DrawTextGlyphs,
+    DrawTextGlyphsRust,
     GetUnicodeToGlyphIndexMappings,
 )
 
@@ -27,7 +27,7 @@ def RenderText(f, text, glyph_index_map, all_glyph_locs):
             glyphs_to_draw.append((glyph_data, False))
 
     # TODO: Do this heavy lifting in another rust library
-    DrawTextGlyphs(glyphs_to_draw)
+    DrawTextGlyphsRust(glyphs_to_draw)
 
 
 def RenderAllGlyphs(f, all_glyph_locs):
@@ -63,7 +63,7 @@ def ParseFont(fontPath: str) -> None:
             f, table_location_map
         )
 
-        text = "Shrestha"
+        text = "I am"
         RenderText(f, text, unicode_to_glyph_index_map, all_glyph_locs)
         # RenderAllGlyphs(f, all_glyph_locs)
 
