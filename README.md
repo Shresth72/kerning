@@ -1,6 +1,6 @@
 # Text Kerning
 
-Rendering Text from glyphs
+Rendering Text from glyphs (in progress)
 
 ## Build & Run (renderer lib not published yet, so build manually)
 
